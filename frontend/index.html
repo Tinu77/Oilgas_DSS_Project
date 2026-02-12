@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Oil & Gas Intelligent DSS Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Chart.js for probability trend chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body{
+      font-family: Arial, Helvetica, sans-serif;
+      background:#f5f7fa;
+      padding:20px;
+    }
+    h1{ text-align:center; margin-bottom: 6px; }
+    .sub{ text-align:center; color:#555; margin-top:0; }
+
+    .container{
+      max-width: 980px;
+      margin: 0 auto;
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top: 14px;
+    }
+
+    label{ font-weight:700; display:block; }
+    input{
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      border:1px solid #d9d9d9;
+      border-radius:8px;
+      outline:none;
+    }
+
+    .actions{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      padding:12px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    #predictBtn{ background:#0d6efd; color:#fff; }
+    #predictBtn:hover{ background:#0b5ed7; }
+    #clearBtn{ background:#6c757d; color:#fff; }
+    #clearBtn:hover{ background:#5c636a; }
+
+    .card{
+      margin-top: 16px;
+      border:1px solid #e8e8e8;
+      border-radius:12px;
+      padding:14px;
+      background:#fafafa;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin: 6px 0;
+    }
+
+    .tag{
+      display:inline-block;
+      padding: 4px 10px;
+      border-radius:999px;
+      border:1px solid #ddd;
+      font-weight:700;
+    }
+
+    .high{ color:#b00020; border-color:#f1b1bb; background:#ffe9ee; }
+    .medium{ color:#b36b00; border-color:#f4d49b; background:#fff6e5; }
+    .low{ color:#0f6a35; border-color:#a6dfbb; background:#eafff2; }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    ul{ margin: 8px 0 0 18px; }
+    li{ margin: 4px 0; }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background:#fff;
+    }
+    th, td{
+      border:1px solid #ddd;
+      padding:10px;
+      text-align:left;
+      font-size:14px;
+      vertical-align: top;
+    }
+    th{ background:#f2f2f2; }
+
+    .smallNote{ color:#666; font-size:13px; margin-top:6px; }
+
+    .error{
+      display:none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background:#ffe9e9;
+      border:1px solid #f3b1b1;
+      color:#7a0b0b;
+    }
+
+    .ok{
+      display:none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background:#eafff2;
+      border:1px solid #a6dfbb;
+      color:#0f6a35;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Oil & Gas Intelligent DSS Dashboard</h1>
+  <p class="sub">Deep Learning Prediction • Risk Level • Recommendation • Explainability • History • Trend Chart</p>
+
+  <div class="container">
+
+    <div class="card">
+      <b>Instructions</b>
+      <div class="smallNote">
+        Enter operational values and click <b>Predict</b>. The system will return failure probability, risk level, recommendation, and reasons (explainable AI).
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Pressure</label>
+          <input id="pressure" type="number" step="0.01" value="2600" />
+        </div>
+        <div>
+          <label>Temperature</label>
+          <input id="temperature" type="number" step="0.01" value="115" />
+        </div>
+        <div>
+          <label>Vibration</label>
+          <input id="vibration" type="number" step="0.01" value="6.5" />
+        </div>
+        <div>
+          <label>Flow Rate</label>
+          <input id="flow_rate" type="number" step="0.01" value="1200" />
+        </div>
+        <div>
+          <label>Runtime Hours</label>
+          <input id="runtime_hours" type="number" step="1" value="2500" />
+        </div>
+        <div>
+          <label>Maintenance Gap (days)</label>
+          <input id="maintenance_gap" type="number" step="1" value="320" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="predictBtn">Predict</button>
+        <button id="clearBtn">Clear History</button>
+      </div>
+
+      <div id="okBox" class="ok"></div>
+      <div id="errBox" class="error"></div>
+    </div>
+
+    <!-- Results + Explainability + Trend Chart + History Table -->
+    <div class="twoCol">
+
+      <!-- Left: Results + Explainability -->
+      <div class="card">
+        <b>Prediction Output</b>
+
+        <div class="row">
+          <span><b>Failure Probability:</b></span>
+          <span id="probability" class="tag">—</span>
+        </div>
+
+        <div class="row">
+          <span><b>Risk Level:</b></span>
+          <span id="risk" class="tag">—</span>
+        </div>
+
+        <div class="row">
+          <span><b>Recommendation:</b></span>
+          <span id="recommendation">—</span>
+        </div>
+
+        <hr />
+
+        <b>Explainable AI (Why this decision?)</b>
+        <div class="smallNote">These reasons are returned by the backend (rule-based XAI) to make decisions transparent.</div>
+        <ul id="explain">
+          <li>—</li>
+        </ul>
+      </div>
+
+      <!-- Right: Trend Chart -->
+      <div class="card">
+        <b>Failure Probability Trend</b>
+        <div class="smallNote">Each click on Predict adds a new point to the trend line.</div>
+        <canvas id="trendChart" height="140"></canvas>
+      </div>
+
+    </div>
+
+    <!-- History Table -->
+    <div class="card">
+      <b>Prediction History (Audit Trail)</b>
+      <div class="smallNote">This table keeps a record of each DSS output for traceability and decision audit.</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Time</th>
+            <th>Failure Probability</th>
+            <th>Risk Level</th>
+            <th>Recommendation</th>
+            <th>Explanation (summary)</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // Change this only if your backend runs on another address/port
+    const API_URL = "http://127.0.0.1:8000/predict";
+
+    // Store history for chart + table
+    const probHistory = [];
+    const timeHistory = [];
+
+    // Chart.js instance
+    let trendChart = null;
+
+    function setStatus(okMsg, errMsg) {
+      const okBox = document.getElementById("okBox");
+      const errBox = document.getElementById("errBox");
+
+      if (okMsg) {
+        okBox.textContent = okMsg;
+        okBox.style.display = "block";
+      } else {
+        okBox.style.display = "none";
+      }
+
+      if (errMsg) {
+        errBox.textContent = errMsg;
+        errBox.style.display = "block";
+      } else {
+        errBox.style.display = "none";
+      }
+    }
+
+    function riskClass(risk) {
+      if (risk === "HIGH") return "tag high";
+      if (risk === "MEDIUM") return "tag medium";
+      if (risk === "LOW") return "tag low";
+      return "tag";
+    }
+
+    function nowTime() {
+      const d = new Date();
+      return d.toLocaleString();
+    }
+
+    function initChart() {
+      const ctx = document.getElementById("trendChart").getContext("2d");
+      trendChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: timeHistory,
+          datasets: [{
+            label: "Failure Probability",
+            data: probHistory,
+            borderColor: "red",
+            backgroundColor: "transparent",
+            tension: 0.25
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { min: 0, max: 1 }
+          }
+        }
+      });
+    }
+
+    function updateChart() {
+      if (!trendChart) initChart();
+      trendChart.data.labels = timeHistory;
+      trendChart.data.datasets[0].data = probHistory;
+      trendChart.update();
+    }
+
+    function updateExplainList(explanation) {
+      const ul = document.getElementById("explain");
+      ul.innerHTML = "";
+
+      // If backend did not send explanation, show fallback
+      if (!explanation || !Array.isArray(explanation) || explanation.length === 0) {
+        const li = document.createElement("li");
+        li.innerText = "No explanation returned. Ensure backend includes 'explanation' in response.";
+        ul.appendChild(li);
+        return;
+      }
+
+      explanation.forEach(text => {
+        const li = document.createElement("li");
+        li.innerText = text;
+        ul.appendChild(li);
+      });
+    }
+
+    function addHistoryRow(data) {
+      const tbody = document.getElementById("historyTable");
+      const row = document.createElement("tr");
+
+      const time = nowTime();
+      const explanationSummary = (data.explanation && data.explanation.length)
+        ? data.explanation.join("; ")
+        : "—";
+
+      row.innerHTML = `
+        <td>${tbody.rows.length + 1}</td>
+        <td>${time}</td>
+        <td>${data.failure_probability}</td>
+        <td>${data.risk_level}</td>
+        <td>${data.recommendation}</td>
+        <td>${explanationSummary}</td>
+      `;
+
+      tbody.appendChild(row);
+      return time;
+    }
+
+    async function predict() {
+      setStatus("", "");
+
+      // Read inputs
+      const payload = {
+        pressure: Number(document.getElementById("pressure").value),
+        temperature: Number(document.getElementById("temperature").value),
+        vibration: Number(document.getElementById("vibration").value),
+        flow_rate: Number(document.getElementById("flow_rate").value),
+        runtime_hours: Number(document.getElementById("runtime_hours").value),
+        maintenance_gap: Number(document.getElementById("maintenance_gap").value)
+      };
+
+      // Basic validation
+      const anyNaN = Object.values(payload).some(v => Number.isNaN(v));
+      if (anyNaN) {
+        setStatus("", "Please fill all input fields with valid numbers.");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const txt = await response.text();
+          throw new Error(txt || "API error");
+        }
+
+        const data = await response.json();
+
+        // Update main result values
+        const probEl = document.getElementById("probability");
+        const riskEl = document.getElementById("risk");
+
+        probEl.innerText = data.failure_probability ?? "—";
+        probEl.className = "tag";
+
+        riskEl.innerText = data.risk_level ?? "—";
+        riskEl.className = riskClass(data.risk_level);
+
+        document.getElementById("recommendation").innerText = data.recommendation ?? "—";
+
+        // Explainability list
+        updateExplainList(data.explanation);
+
+        // Add history row + chart update
+        const time = addHistoryRow(data);
+
+        // Trend chart data
+        probHistory.push(Number(data.failure_probability));
+        timeHistory.push(time);
+        updateChart();
+
+        setStatus("Prediction completed successfully.", "");
+
+      } catch (err) {
+        console.error(err);
+        setStatus("", "Predict failed. Ensure backend is running and CORS is enabled. Details: " + err.message);
+      }
+    }
+
+    function clearHistory() {
+      // Clear arrays
+      probHistory.length = 0;
+      timeHistory.length = 0;
+
+      // Clear table
+      document.getElementById("historyTable").innerHTML = "";
+
+      // Reset chart
+      if (trendChart) {
+        trendChart.destroy();
+        trendChart = null;
+      }
+
+      // Reset outputs
+      document.getElementById("probability").innerText = "—";
+      document.getElementById("risk").innerText = "—";
+      document.getElementById("risk").className = "tag";
+      document.getElementById("recommendation").innerText = "—";
+      document.getElementById("explain").innerHTML = "<li>—</li>";
+
+      setStatus("History cleared.", "");
+    }
+
+    // Wire buttons
+    document.getElementById("predictBtn").addEventListener("click", predict);
+    document.getElementById("clearBtn").addEventListener("click", clearHistory);
+
+    // Initialize empty chart once
+    initChart();
+  </script>
+</body>
+</html>
