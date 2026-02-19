@@ -1,3 +1,37 @@
+from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi.responses import FileResponse
+
+//New CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://oilgas-dss-project-6.onrender.com"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+from fastapi.staticfiles import StaticFiles
+import os
+
+
+
+
+# If your frontend folder is at repo root: Oilgas_DSS_Project/frontend
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+@app.get("/")
+def home():
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import numpy as np
@@ -7,6 +41,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
 app = FastAPI(title="Oil & Gas DSS API", version="1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://oilgas-dss-project-6.onrender.com"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        # for testing (we can lock it later)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 def explain_decision(data):
     reasons = []
 
