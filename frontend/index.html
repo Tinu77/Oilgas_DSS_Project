@@ -399,6 +399,34 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
           body: JSON.stringify(payload)
         });
 
+        //new data
+const data = await res.json();
+// Update main result fields
+document.getElementById("prob").innerText =
+  (data.failure_probability * 100).toFixed(1) + "%";
+
+document.getElementById("risk").innerText = data.risk_level;
+document.getElementById("rec").innerText = data.recommendation;
+
+// Raw JSON (helps debugging)
+document.getElementById("raw").textContent = JSON.stringify(data, null, 2);
+
+// Explanation list
+const ul = document.getElementById("explain");
+ul.innerHTML = "";
+
+if (Array.isArray(data.explanation) && data.explanation.length > 0) {
+  data.explanation.forEach(item => {
+    const li = document.createElement("li");
+    li.innerText = item;
+    ul.appendChild(li);
+  });
+} else {
+  const li = document.createElement("li");
+  li.innerText = "No explanation returned (LOW risk or explainability not enabled).";
+  ul.appendChild(li);
+}
+document.getElementById("resultBox").textContent = JSON.stringify(data, null, 2);
         if (!response.ok) {
           const txt = await response.text();
           throw new Error(txt || "API error");
