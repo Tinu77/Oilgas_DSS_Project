@@ -401,9 +401,6 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
 
         //new data
 
-// Update main result fields
-document.getElementById("prob").innerText =
-  (data.failure_probability * 100).toFixed(1) + "%";
 
 document.getElementById("risk").innerText = data.risk_level;
 document.getElementById("rec").innerText = data.recommendation;
