@@ -400,7 +400,7 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
         });
 
         //new data
-const data = await res.json();
+
 // Update main result fields
 document.getElementById("prob").innerText =
   (data.failure_probability * 100).toFixed(1) + "%";
