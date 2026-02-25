@@ -2,249 +2,227 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Oil & Gas Intelligent DSS Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Chart.js for probability trend chart -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js (for probability trend chart) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
-    body{
+    body {
       font-family: Arial, Helvetica, sans-serif;
-      background:#f5f7fa;
-      padding:20px;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
     }
-    h1{ text-align:center; margin-bottom: 6px; }
-    .sub{ text-align:center; color:#555; margin-top:0; }
-
-    .container{
-      max-width: 980px;
+    .wrap {
+      max-width: 1050px;
       margin: 0 auto;
-      background:#fff;
-      padding:20px;
-      border-radius:12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-top: 14px;
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
     }
-
-    label{ font-weight:700; display:block; }
-    input{
-      width:100%;
-      padding:10px;
-      margin-top:6px;
-      border:1px solid #d9d9d9;
-      border-radius:8px;
-      outline:none;
+    h1 { margin: 0 0 10px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 
-    .actions{
-      margin-top: 14px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
+    label { font-weight: bold; display: block; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d6dbe3;
+      border-radius: 10px;
+      outline: none;
     }
-
-    button{
-      padding:12px 14px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:16px;
+    button {
+      padding: 12px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
     }
+    .btnRow { display:flex; gap:10px; flex-wrap: wrap; }
+    .primary { background:#1f6feb; color:#fff; }
+    .danger { background:#e55353; color:#fff; }
+    .muted { background:#eaeef6; }
 
-    #predictBtn{ background:#0d6efd; color:#fff; }
-    #predictBtn:hover{ background:#0b5ed7; }
-    #clearBtn{ background:#6c757d; color:#fff; }
-    #clearBtn:hover{ background:#5c636a; }
-
-    .card{
-      margin-top: 16px;
-      border:1px solid #e8e8e8;
-      border-radius:12px;
-      padding:14px;
-      background:#fafafa;
-    }
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin: 6px 0;
-    }
-
-    .tag{
-      display:inline-block;
-      padding: 4px 10px;
-      border-radius:999px;
-      border:1px solid #ddd;
-      font-weight:700;
-    }
-
-    .high{ color:#b00020; border-color:#f1b1bb; background:#ffe9ee; }
-    .medium{ color:#b36b00; border-color:#f4d49b; background:#fff6e5; }
-    .low{ color:#0f6a35; border-color:#a6dfbb; background:#eafff2; }
-
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 16px;
-    }
-
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
-      .twoCol{ grid-template-columns: 1fr; }
-    }
-
-    ul{ margin: 8px 0 0 18px; }
-    li{ margin: 4px 0; }
-
-    table{
-      width:100%;
-      border-collapse: collapse;
+    .status {
       margin-top: 10px;
-      background:#fff;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+      white-space: pre-wrap;
     }
-    th, td{
-      border:1px solid #ddd;
-      padding:10px;
-      text-align:left;
-      font-size:14px;
+    .ok { background:#e9f7ef; border: 1px solid #b7e1c3; color:#1e6b3a; }
+    .err { background:#fdecec; border: 1px solid #f2b5b5; color:#8a1c1c; }
+
+    .resultRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 10px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .resultRow { grid-template-columns: 1fr; } }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      border: 1px solid #d6dbe3;
+      background: #f4f6fa;
+    }
+    .low { background:#e9f7ef; border-color:#b7e1c3; }
+    .medium { background:#fff6e6; border-color:#ffd59b; }
+    .high { background:#fdecec; border-color:#f2b5b5; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-x: auto;
+      display: block;
+    }
+    th, td {
+      border-bottom: 1px solid #eef2f7;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
       vertical-align: top;
     }
-    th{ background:#f2f2f2; }
+    th { background:#fafbfe; position: sticky; top: 0; }
 
-    .smallNote{ color:#666; font-size:13px; margin-top:6px; }
-
-    .error{
-      display:none;
-      margin-top: 14px;
-      padding: 12px;
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    details pre {
+      background:#f4f6fa;
+      padding: 10px;
       border-radius: 10px;
-      background:#ffe9e9;
-      border:1px solid #f3b1b1;
-      color:#7a0b0b;
+      overflow:auto;
     }
 
-    .ok{
-      display:none;
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 10px;
-      background:#eafff2;
-      border:1px solid #a6dfbb;
-      color:#0f6a35;
-    }
+    .smallNote { color:#556; font-size: 13px; margin-top: 8px; }
+    .footerNote { color:#667; font-size: 12px; margin-top: 10px; }
   </style>
 </head>
 
 <body>
-  <h1>Oil & Gas Intelligent DSS Dashboard</h1>
-  <p class="sub">Deep Learning Prediction • Risk Level • Recommendation • Explainability • History • Trend Chart</p>
-
-  <div class="container">
-
+  <div class="wrap">
     <div class="card">
-      <b>Instructions</b>
+      <h1>Oil & Gas Intelligent DSS Dashboard</h1>
       <div class="smallNote">
-        Enter operational values and click <b>Predict</b>. The system will return failure probability, risk level, recommendation, and reasons (explainable AI).
+        Enter operational values → click <b>Predict</b> → view failure probability, risk level, recommendation, explanation, history and trend chart.
       </div>
+    </div>
+
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>Operational Inputs</h2>
 
       <div class="grid">
         <div>
-          <label>Pressure</label>
-          <input id="pressure" type="number" step="0.01" value="2600" />
+          <label for="pressure">Pressure</label>
+          <input id="pressure" type="number" step="any" placeholder="e.g., 120" />
         </div>
         <div>
-          <label>Temperature</label>
-          <input id="temperature" type="number" step="0.01" value="115" />
+          <label for="temperature">Temperature</label>
+          <input id="temperature" type="number" step="any" placeholder="e.g., 85" />
         </div>
         <div>
-          <label>Vibration</label>
-          <input id="vibration" type="number" step="0.01" value="6.5" />
+          <label for="vibration">Vibration</label>
+          <input id="vibration" type="number" step="any" placeholder="e.g., 0.25" />
+        </div>
+
+        <div>
+          <label for="flow_rate">Flow Rate</label>
+          <input id="flow_rate" type="number" step="any" placeholder="e.g., 50" />
         </div>
         <div>
-          <label>Flow Rate</label>
-          <input id="flow_rate" type="number" step="0.01" value="1200" />
+          <label for="runtime_hours">Runtime Hours</label>
+          <input id="runtime_hours" type="number" step="any" placeholder="e.g., 1200" />
         </div>
         <div>
-          <label>Runtime Hours</label>
-          <input id="runtime_hours" type="number" step="1" value="2500" />
-        </div>
-        <div>
-          <label>Maintenance Gap (days)</label>
-          <input id="maintenance_gap" type="number" step="1" value="320" />
+          <label for="maintenance_gap">Maintenance Gap</label>
+          <input id="maintenance_gap" type="number" step="any" placeholder="e.g., 30" />
         </div>
       </div>
 
-      <div class="actions">
-        <button id="predictBtn">Predict</button>
-        <button id="clearBtn">Clear History</button>
+      <div style="margin-top:14px;" class="btnRow">
+        <button id="predictBtn" type="button" class="primary">Predict</button>
+        <button id="clearBtn" type="button" class="danger">Clear History</button>
+        <button id="fillSampleBtn" type="button" class="muted">Fill Sample Values</button>
       </div>
 
-      <div id="okBox" class="ok"></div>
-      <div id="errBox" class="error"></div>
+      <div id="okBox" class="status ok"></div>
+      <div id="errBox" class="status err"></div>
     </div>
 
-    <!-- Results + Explainability + Trend Chart + History Table -->
-    <div class="twoCol">
+    <!-- RESULTS -->
+    <div class="card">
+      <h2>Prediction Result</h2>
 
-      <!-- Left: Results + Explainability -->
-      <div class="card">
-        <b>Prediction Output</b>
-
-        <div class="row">
-          <span><b>Failure Probability:</b></span>
-          <span id="probability" class="tag">—</span>
+      <div class="resultRow">
+        <div>
+          <div><b>Failure Probability</b></div>
+          <div style="margin-top:6px;">
+            <span id="probability" class="pill">—</span>
+          </div>
         </div>
 
-        <div class="row">
-          <span><b>Risk Level:</b></span>
-          <span id="risk" class="tag">—</span>
+        <div>
+          <div><b>Risk Level</b></div>
+          <div style="margin-top:6px;">
+            <span id="risk" class="pill">—</span>
+          </div>
         </div>
 
-        <div class="row">
-          <span><b>Recommendation:</b></span>
-          <span id="recommendation">—</span>
+        <div>
+          <div><b>Recommendation</b></div>
+          <div style="margin-top:6px;">
+            <span id="recommendation">—</span>
+          </div>
         </div>
+      </div>
 
-        <hr />
-
-        <b>Explainable AI (Why this decision?)</b>
-        <div class="smallNote">These reasons are returned by the backend (rule-based XAI) to make decisions transparent.</div>
+      <div style="margin-top:12px;">
+        <b>Explainable AI (Why the model predicted this)</b>
         <ul id="explain">
           <li>—</li>
         </ul>
+        <div class="footerNote">
+          If this list is empty for LOW risk, it’s normal. Explanations often appear more for MEDIUM/HIGH risk or when XAI is enabled on the backend.
+        </div>
       </div>
 
-      <!-- Right: Trend Chart -->
-      <div class="card">
-        <b>Failure Probability Trend</b>
-        <div class="smallNote">Each click on Predict adds a new point to the trend line.</div>
-        <canvas id="trendChart" height="140"></canvas>
-      </div>
-
+      <details style="margin-top:12px;">
+        <summary><b>Raw JSON Response</b></summary>
+        <pre id="raw">{}</pre>
+      </details>
     </div>
 
-    <!-- History Table -->
+    <!-- CHART -->
     <div class="card">
-      <b>Prediction History (Audit Trail)</b>
-      <div class="smallNote">This table keeps a record of each DSS output for traceability and decision audit.</div>
+      <h2>Probability Trend (History)</h2>
+      <canvas id="trendChart" height="90"></canvas>
+    </div>
 
+    <!-- HISTORY TABLE -->
+    <div class="card">
+      <h2>Prediction History</h2>
       <table>
         <thead>
           <tr>
             <th>#</th>
             <th>Time</th>
             <th>Failure Probability</th>
-            <th>Risk Level</th>
+            <th>Risk</th>
             <th>Recommendation</th>
             <th>Explanation (summary)</th>
           </tr>
@@ -252,53 +230,106 @@
         <tbody id="historyTable"></tbody>
       </table>
     </div>
-
   </div>
 
   <script>
-    // Change this only if your backend runs on another address/port
-  //const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
-const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
+    // ✅ Your backend predict endpoint (Render backend)
+    const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
 
-  
-
-
-    // Store history for chart + table
+    // History arrays
     const probHistory = [];
     const timeHistory = [];
 
-    // Chart.js instance
+    // Chart instance
     let trendChart = null;
 
-    function setStatus(okMsg, errMsg) {
+    // UI helpers
+    function showOk(msg) {
       const okBox = document.getElementById("okBox");
       const errBox = document.getElementById("errBox");
-
-      if (okMsg) {
-        okBox.textContent = okMsg;
-        okBox.style.display = "block";
-      } else {
-        okBox.style.display = "none";
-      }
-
-      if (errMsg) {
-        errBox.textContent = errMsg;
-        errBox.style.display = "block";
-      } else {
-        errBox.style.display = "none";
-      }
+      errBox.style.display = "none";
+      okBox.textContent = msg || "";
+      okBox.style.display = msg ? "block" : "none";
     }
 
-    function riskClass(risk) {
-      if (risk === "HIGH") return "tag high";
-      if (risk === "MEDIUM") return "tag medium";
-      if (risk === "LOW") return "tag low";
-      return "tag";
+    function showErr(msg) {
+      const okBox = document.getElementById("okBox");
+      const errBox = document.getElementById("errBox");
+      okBox.style.display = "none";
+      errBox.textContent = msg || "";
+      errBox.style.display = msg ? "block" : "none";
+    }
+
+    function riskPillClass(risk) {
+      const base = "pill ";
+      if (risk === "HIGH") return base + "high";
+      if (risk === "MEDIUM") return base + "medium";
+      if (risk === "LOW") return base + "low";
+      return "pill";
     }
 
     function nowTime() {
-      const d = new Date();
-      return d.toLocaleString();
+      return new Date().toLocaleString();
+    }
+
+    function readNumber(id) {
+      const el = document.getElementById(id);
+      if (!el) throw new Error(`Missing input: ${id}`);
+      const raw = String(el.value ?? "").replace(/,/g, "").trim();
+      const v = Number(raw);
+      if (!Number.isFinite(v)) throw new Error(`Invalid number in ${id}: "${el.value}"`);
+      return v;
+    }
+
+    function buildPayload() {
+      return {
+        pressure: readNumber("pressure"),
+        temperature: readNumber("temperature"),
+        vibration: readNumber("vibration"),
+        flow_rate: readNumber("flow_rate"),
+        runtime_hours: readNumber("runtime_hours"),
+        maintenance_gap: readNumber("maintenance_gap"),
+      };
+    }
+
+    function setExplainList(explanation) {
+      const ul = document.getElementById("explain");
+      ul.innerHTML = "";
+
+      if (!Array.isArray(explanation) || explanation.length === 0) {
+        const li = document.createElement("li");
+        li.innerText = "No explanation returned.";
+        ul.appendChild(li);
+        return;
+      }
+
+      explanation.forEach(text => {
+        const li = document.createElement("li");
+        li.innerText = text;
+        ul.appendChild(li);
+      });
+    }
+
+    function addHistoryRow(data) {
+      const tbody = document.getElementById("historyTable");
+      const row = document.createElement("tr");
+      const time = nowTime();
+
+      const explanationSummary = (Array.isArray(data.explanation) && data.explanation.length)
+        ? data.explanation.join("; ")
+        : "—";
+
+      row.innerHTML = `
+        <td>${tbody.rows.length + 1}</td>
+        <td>${time}</td>
+        <td>${data.failure_probability}</td>
+        <td>${data.risk_level}</td>
+        <td>${data.recommendation}</td>
+        <td>${explanationSummary}</td>
+      `;
+
+      tbody.appendChild(row);
+      return time;
     }
 
     function initChart() {
@@ -310,8 +341,6 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
           datasets: [{
             label: "Failure Probability",
             data: probHistory,
-            borderColor: "red",
-            backgroundColor: "transparent",
             tension: 0.25
           }]
         },
@@ -331,66 +360,40 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
       trendChart.update();
     }
 
-    function updateExplainList(explanation) {
-      const ul = document.getElementById("explain");
-      ul.innerHTML = "";
+    function updateResultUI(data) {
+      // Probability as % + raw value
+      const probEl = document.getElementById("probability");
+      const riskEl = document.getElementById("risk");
+      const recEl = document.getElementById("recommendation");
+      const rawEl = document.getElementById("raw");
 
-      // If backend did not send explanation, show fallback
-      if (!explanation || !Array.isArray(explanation) || explanation.length === 0) {
-        const li = document.createElement("li");
-        li.innerText = "No explanation returned. Ensure backend includes 'explanation' in response.";
-        ul.appendChild(li);
-        return;
-      }
+      const p = Number(data.failure_probability);
+      const pct = Number.isFinite(p) ? (p * 100).toFixed(1) + "%" : "—";
+      probEl.textContent = Number.isFinite(p) ? `${pct} (${p})` : "—";
 
-      explanation.forEach(text => {
-        const li = document.createElement("li");
-        li.innerText = text;
-        ul.appendChild(li);
-      });
-    }
+      riskEl.textContent = data.risk_level ?? "—";
+      riskEl.className = riskPillClass(data.risk_level);
 
-    function addHistoryRow(data) {
-      const tbody = document.getElementById("historyTable");
-      const row = document.createElement("tr");
+      recEl.textContent = data.recommendation ?? "—";
 
-      const time = nowTime();
-      const explanationSummary = (data.explanation && data.explanation.length)
-        ? data.explanation.join("; ")
-        : "—";
+      rawEl.textContent = JSON.stringify(data, null, 2);
 
-      row.innerHTML = `
-        <td>${tbody.rows.length + 1}</td>
-        <td>${time}</td>
-        <td>${data.failure_probability}</td>
-        <td>${data.risk_level}</td>
-        <td>${data.recommendation}</td>
-        <td>${explanationSummary}</td>
-      `;
-
-      tbody.appendChild(row);
-      return time;
+      setExplainList(data.explanation);
     }
 
     async function predict() {
-      setStatus("", "");
+      showOk("");
+      showErr("");
 
-      // Read inputs
-      const payload = {
-        pressure: Number(document.getElementById("pressure").value),
-        temperature: Number(document.getElementById("temperature").value),
-        vibration: Number(document.getElementById("vibration").value),
-        flow_rate: Number(document.getElementById("flow_rate").value),
-        runtime_hours: Number(document.getElementById("runtime_hours").value),
-        maintenance_gap: Number(document.getElementById("maintenance_gap").value)
-      };
-
-      // Basic validation
-      const anyNaN = Object.values(payload).some(v => Number.isNaN(v));
-      if (anyNaN) {
-        setStatus("", "Please fill all input fields with valid numbers.");
+      let payload;
+      try {
+        payload = buildPayload();
+      } catch (e) {
+        showErr(e.message);
         return;
       }
+
+      showOk("Predicting...");
 
       try {
         const response = await fetch(API_URL, {
@@ -399,98 +402,72 @@ const API_URL = "https://oilgas-dss-project-5.onrender.com/predict";
           body: JSON.stringify(payload)
         });
 
-        //new data
+        const text = await response.text();
 
-
-document.getElementById("risk").innerText = data.risk_level;
-document.getElementById("rec").innerText = data.recommendation;
-
-// Raw JSON (helps debugging)
-document.getElementById("raw").textContent = JSON.stringify(data, null, 2);
-
-// Explanation list
-const ul = document.getElementById("explain");
-ul.innerHTML = "";
-
-if (Array.isArray(data.explanation) && data.explanation.length > 0) {
-  data.explanation.forEach(item => {
-    const li = document.createElement("li");
-    li.innerText = item;
-    ul.appendChild(li);
-  });
-} else {
-  const li = document.createElement("li");
-  li.innerText = "No explanation returned (LOW risk or explainability not enabled).";
-  ul.appendChild(li);
-}
-document.getElementById("resultBox").textContent = JSON.stringify(data, null, 2);
         if (!response.ok) {
-          const txt = await response.text();
-          throw new Error(txt || "API error");
+          // Show backend error response clearly
+          showErr(`Predict failed (HTTP ${response.status}). Details:\n${text}`);
+          return;
         }
 
-        const data = await response.json();
+        const data = JSON.parse(text);
 
-        // Update main result values
-        const probEl = document.getElementById("probability");
-        const riskEl = document.getElementById("risk");
+        // Update UI
+        updateResultUI(data);
 
-        probEl.innerText = data.failure_probability ?? "—";
-        probEl.className = "tag";
-
-        riskEl.innerText = data.risk_level ?? "—";
-        riskEl.className = riskClass(data.risk_level);
-
-        document.getElementById("recommendation").innerText = data.recommendation ?? "—";
-
-        // Explainability list
-        updateExplainList(data.explanation);
-
-        // Add history row + chart update
+        // History + chart
         const time = addHistoryRow(data);
-
-        // Trend chart data
         probHistory.push(Number(data.failure_probability));
         timeHistory.push(time);
         updateChart();
 
-        setStatus("Prediction completed successfully.", "");
-
+        showOk("Prediction completed successfully ✅");
       } catch (err) {
-        console.error(err);
-        setStatus("", "Predict failed. Ensure backend is running and CORS is enabled. Details: " + err.message);
+        showErr("Network/API error. Details: " + String(err));
       }
     }
 
     function clearHistory() {
-      // Clear arrays
       probHistory.length = 0;
       timeHistory.length = 0;
 
-      // Clear table
       document.getElementById("historyTable").innerHTML = "";
 
-      // Reset chart
       if (trendChart) {
         trendChart.destroy();
         trendChart = null;
       }
+      initChart();
 
-      // Reset outputs
-      document.getElementById("probability").innerText = "—";
-      document.getElementById("risk").innerText = "—";
-      document.getElementById("risk").className = "tag";
-      document.getElementById("recommendation").innerText = "—";
+      document.getElementById("probability").textContent = "—";
+      const riskEl = document.getElementById("risk");
+      riskEl.textContent = "—";
+      riskEl.className = "pill";
+      document.getElementById("recommendation").textContent = "—";
       document.getElementById("explain").innerHTML = "<li>—</li>";
+      document.getElementById("raw").textContent = "{}";
 
-      setStatus("History cleared.", "");
+      showOk("History cleared ✅");
+    }
+
+    function fillSample() {
+      // Safe sample values (change as you like)
+      document.getElementById("pressure").value = 120;
+      document.getElementById("temperature").value = 85;
+      document.getElementById("vibration").value = 0.25;
+      document.getElementById("flow_rate").value = 50;
+      document.getElementById("runtime_hours").value = 1200;
+      document.getElementById("maintenance_gap").value = 30;
+      showOk("Sample values filled ✅");
+      showErr("");
     }
 
     // Wire buttons
     document.getElementById("predictBtn").addEventListener("click", predict);
     document.getElementById("clearBtn").addEventListener("click", clearHistory);
+    document.getElementById("fillSampleBtn").addEventListener("click", fillSample);
 
-    // Initialize empty chart once
+    // Init chart on load
     initChart();
   </script>
 </body>
